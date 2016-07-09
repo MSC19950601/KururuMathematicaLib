@@ -1,73 +1,67 @@
 function [R_best,L_best,L_ave,Shortest_Route,Shortest_Length]=ACATSP(C,NC_max,m,Alpha,Beta,Rho,Q)
-%%=========================================================================
-%%  ACATSP.m
-%%  Ant Colony Algorithm for Traveling Salesman Problem
-%%  ChengAihua,PLA Information Engineering University,ZhengZhou,China
-%%  Email:aihuacheng@gmail.com
-%%  All rights reserved
 %%-------------------------------------------------------------------------
-%%  ä¸»è¦ç¬¦å·è¯´æ˜
-%%  C        nä¸ªåŸå¸‚çš„åæ ‡ï¼ŒnÃ—2çš„çŸ©é˜µ
-%%  NC_max   æœ€å¤§è¿­ä»£æ¬¡æ•°
-%%  m        èš‚èšä¸ªæ•°
-%%  Alpha    è¡¨å¾ä¿¡æ¯ç´ é‡è¦ç¨‹åº¦çš„å‚æ•°
-%%  Beta     è¡¨å¾å¯å‘å¼å› å­é‡è¦ç¨‹åº¦çš„å‚æ•°
-%%  Rho      ä¿¡æ¯ç´ è’¸å‘ç³»æ•°
-%%  Q        ä¿¡æ¯ç´ å¢åŠ å¼ºåº¦ç³»æ•°
-%%  R_best   å„ä»£æœ€ä½³è·¯çº¿
-%%  L_best   å„ä»£æœ€ä½³è·¯çº¿çš„é•¿åº¦
+%% Ö÷Òª·ûºÅËµÃ÷
+%% C n¸ö³ÇÊĞµÄs×ø±ê£¬n¡Á2µÄ¾ØÕó
+%% NC_max ×î´óµü´ú´ÎÊı
+%% m ÂìÒÏ¸öÊı
+%% Alpha ±íÕ÷ĞÅÏ¢ËØÖØÒª³Ì¶ÈµÄ²ÎÊı
+%% Beta ±íÕ÷Æô·¢Ê½Òò×ÓÖØÒª³Ì¶ÈµÄ²ÎÊı
+%% Rho ĞÅÏ¢ËØÕô·¢ÏµÊı
+%% Q ĞÅÏ¢ËØÔö¼ÓÇ¿¶ÈÏµÊı
+%% R_best ¸÷´ú×î¼ÑÂ·Ïß
+%% L_best ¸÷´ú×î¼ÑÂ·ÏßµÄ³¤¶È
 %%=========================================================================
 
-%%ç¬¬ä¸€æ­¥ï¼šå˜é‡åˆå§‹åŒ–
-n=size(*,1);%*è¡¨ç¤ºé—®é¢˜çš„è§„æ¨¡ï¼ˆåŸå¸‚ä¸ªæ•°ï¼‰
-*=zeros(n,n);%Dè¡¨ç¤ºå®Œå…¨å›¾çš„èµ‹æƒé‚»æ¥çŸ©é˜µ
+%%µÚÒ»²½£º±äÁ¿³õÊ¼»¯
+n=size(C,1);%n±íÊ¾ÎÊÌâµÄ¹æÄ££¨³ÇÊĞ¸öÊı£©
+D=zeros(n,n);%D±íÊ¾ÍêÈ«Í¼µÄ¸³È¨ÁÚ½Ó¾ØÕó
 for i=1:n
     for j=1:n
         if i~=j
-            D(i,j)=((C(i,1)-C(j,1))^2+(C(i,2)-C(j,2))^2)^0.5;
+            D(i,j)=((C(i,1)-C(j,1))^2+(C(i,2)-C(j,2))^2)^0.5;%Å·Ê½¾àÀë
         else
-            D(i,j)=eps;
+            D(i,j)=eps;      %i=jÊ±²»¼ÆËã£¬Ó¦¸ÃÎª0£¬µ«ºóÃæµÄÆô·¢Òò×ÓÒªÈ¡µ¹Êı£¬ÓÃeps£¨¸¡µãÏà¶Ô¾«¶È£©±íÊ¾
         end
-        D(j,i)=D(i,j);
+        D(j,i)=D(i,j);   %¶Ô³Æ¾ØÕó
     end
 end
-Eta=1./D;%Etaä¸ºå¯å‘å› å­ï¼Œè¿™é‡Œè®¾ä¸ºè·ç¦»çš„å€’æ•°
-Tau=ones(n,n);%Tauä¸ºä¿¡æ¯ç´ çŸ©é˜µ
-Tabu=zeros(m,n);%å­˜å‚¨å¹¶è®°å½•è·¯å¾„çš„ç”Ÿæˆ
-NC=1;%è¿­ä»£è®¡æ•°å™¨
-R_best=zeros(NC_max,n);%å„ä»£æœ€ä½³è·¯çº¿
-L_best=inf.*ones(NC_max,1);%å„ä»£æœ€ä½³è·¯çº¿çš„é•¿åº¦
-L_ave=zeros(NC_max,1);%å„ä»£è·¯çº¿çš„å¹³å‡é•¿åº¦
+Eta=1./D;          %EtaÎªÆô·¢Òò×Ó£¬ÕâÀïÉèÎª¾àÀëµÄµ¹Êı
+Tau=ones(n,n);     %TauÎªĞÅÏ¢ËØ¾ØÕó
+Tabu=zeros(m,n);   %´æ´¢²¢¼ÇÂ¼Â·¾¶µÄÉú³É
+NC=1;               %µü´ú¼ÆÊıÆ÷£¬¼ÇÂ¼µü´ú´ÎÊı
+R_best=zeros(NC_max,n);       %¸÷´ú×î¼ÑÂ·Ïß
+L_best=inf.*ones(NC_max,1);   %¸÷´ú×î¼ÑÂ·ÏßµÄ³¤¶È
+L_ave=zeros(NC_max,1);        %¸÷´úÂ·ÏßµÄÆ½¾ù³¤¶È
 
-while NC<=NC_max%åœæ­¢æ¡ä»¶ä¹‹ä¸€ï¼šè¾¾åˆ°æœ€å¤§è¿­ä»£æ¬¡æ•°
-    %%ç¬¬äºŒæ­¥ï¼šå°†måªèš‚èšæ”¾åˆ°nä¸ªåŸå¸‚ä¸Š
-    Randpos=[];
+while NC<=NC_max        %Í£Ö¹Ìõ¼şÖ®Ò»£º´ïµ½×î´óµü´ú´ÎÊı£¬Í£Ö¹
+    %%µÚ¶ş²½£º½«mÖ»ÂìÒÏ·Åµ½n¸ö³ÇÊĞÉÏ
+    Randpos=[];   %Ëæ¼´´æÈ¡
     for i=1:(ceil(m/n))
         Randpos=[Randpos,randperm(n)];
     end
-    Tabu(:,1)=(Randpos(1,1:m))';
-   
-    %%ç¬¬ä¸‰æ­¥ï¼šmåªèš‚èšæŒ‰æ¦‚ç‡å‡½æ•°é€‰æ‹©ä¸‹ä¸€åº§åŸå¸‚ï¼Œå®Œæˆå„è‡ªçš„å‘¨æ¸¸
-    for j=2:n
+    Tabu(:,1)=(Randpos(1,1:m))';    %´Ë¾ä²»Ì«Àí½â£¿
+    
+    %%µÚÈı²½£ºmÖ»ÂìÒÏ°´¸ÅÂÊº¯ÊıÑ¡ÔñÏÂÒ»×ù³ÇÊĞ£¬Íê³É¸÷×ÔµÄÖÜÓÎ
+    for j=2:n     %ËùÔÚ³ÇÊĞ²»¼ÆËã
         for i=1:m
-            visited=Tabu(i,1:(j-1));%å·²è®¿é—®çš„åŸå¸‚
-            J=zeros(1,(n-j+1));%å¾…è®¿é—®çš„åŸå¸‚
-            P=J;%å¾…è®¿é—®åŸå¸‚çš„é€‰æ‹©æ¦‚ç‡åˆ†å¸ƒ
+            visited=Tabu(i,1:(j-1)); %¼ÇÂ¼ÒÑ·ÃÎÊµÄ³ÇÊĞ£¬±ÜÃâÖØ¸´·ÃÎÊ
+            J=zeros(1,(n-j+1));       %´ı·ÃÎÊµÄ³ÇÊĞ
+            P=J;                      %´ı·ÃÎÊ³ÇÊĞµÄÑ¡Ôñ¸ÅÂÊ·Ö²¼
             Jc=1;
             for k=1:n
-                if length(find(visited==k))==0
+                if length(find(visited==k))==0   %¿ªÊ¼Ê±ÖÃ0
                     J(Jc)=k;
-                    Jc=Jc+1;
+                    Jc=Jc+1;                         %·ÃÎÊµÄ³ÇÊĞ¸öÊı×Ô¼Ó1
                 end
             end
-            %ä¸‹é¢è®¡ç®—å¾…é€‰åŸå¸‚çš„æ¦‚ç‡åˆ†å¸ƒ
+            %ÏÂÃæ¼ÆËã´ıÑ¡³ÇÊĞµÄ¸ÅÂÊ·Ö²¼
             for k=1:length(J)
                 P(k)=(Tau(visited(end),J(k))^Alpha)*(Eta(visited(end),J(k))^Beta);
-            en*
-            *=*/(sum(P));
-            %æŒ‰æ¦‚ç‡åŸåˆ™é€‰å–ä¸‹ä¸€ä¸ªåŸå¸‚
-            Pcum=cumsum(P);
-            Select=find(Pcum>=rand);
+            end
+            P=P/(sum(P));
+            %°´¸ÅÂÊÔ­ÔòÑ¡È¡ÏÂÒ»¸ö³ÇÊĞ
+            Pcum=cumsum(P);     %cumsum£¬ÔªËØÀÛ¼Ó¼´ÇóºÍ
+            Select=find(Pcum>=rand); %Èô¼ÆËãµÄ¸ÅÂÊ´óÓÚÔ­À´µÄ¾ÍÑ¡ÔñÕâÌõÂ·Ïß
             to_visit=J(Select(1));
             Tabu(i,j)=to_visit;
         end
@@ -75,43 +69,45 @@ while NC<=NC_max%åœæ­¢æ¡ä»¶ä¹‹ä¸€ï¼šè¾¾åˆ°æœ€å¤§è¿­ä»£æ¬¡æ•°
     if NC>=2
         Tabu(1,:)=R_best(NC-1,:);
     end
-   
-    %%ç¬¬å››æ­¥ï¼šè®°å½•æœ¬æ¬¡è¿­ä»£æœ€ä½³è·¯çº¿
-    L=zeros(m,1);
+    
+    %%µÚËÄ²½£º¼ÇÂ¼±¾´Îµü´ú×î¼ÑÂ·Ïß
+    L=zeros(m,1);     %¿ªÊ¼¾àÀëÎª0£¬m*1µÄÁĞÏòÁ¿
     for i=1:m
         R=Tabu(i,:);
         for j=1:(n-1)
-            L(i)=L(i)+D(R(j),R(j+1));
+            L(i)=L(i)+D(R(j),R(j+1));    %Ô­¾àÀë¼ÓÉÏµÚj¸ö³ÇÊĞµ½µÚj+1¸ö³ÇÊĞµÄ¾àÀë
         end
-        L(i)=L(i)+D(R(1),R(n));
+        L(i)=L(i)+D(R(1),R(n));      %Ò»ÂÖÏÂÀ´ºó×ß¹ıµÄ¾àÀë
     end
-    L_best(NC)=min(L);
+    L_best(NC)=min(L);           %×î¼Ñ¾àÀëÈ¡×îĞ¡
     pos=find(L==L_best(NC));
-    R_best(NC,:)=Tabu(pos(1),:);
-    L_ave(NC)=mean(L);
-    NC=NC+1
-   
-    %%ç¬¬äº”æ­¥ï¼šæ›´æ–°ä¿¡æ¯ç´ 
-    Delta_Tau=zeros(n,n);
+    R_best(NC,:)=Tabu(pos(1),:); %´ËÂÖµü´úºóµÄ×î¼ÑÂ·Ïß
+    L_ave(NC)=mean(L);           %´ËÂÖµü´úºóµÄÆ½¾ù¾àÀë
+    NC=NC+1                      %µü´ú¼ÌĞø
+    
+    
+    %%µÚÎå²½£º¸üĞÂĞÅÏ¢ËØ
+    Delta_Tau=zeros(n,n);        %¿ªÊ¼Ê±ĞÅÏ¢ËØÎªn*nµÄ0¾ØÕó
     for i=1:m
         for j=1:(n-1)
             Delta_Tau(Tabu(i,j),Tabu(i,j+1))=Delta_Tau(Tabu(i,j),Tabu(i,j+1))+Q/L(i);
+            %´Ë´ÎÑ­»·ÔÚÂ·¾¶£¨i£¬j£©ÉÏµÄĞÅÏ¢ËØÔöÁ¿
         end
         Delta_Tau(Tabu(i,n),Tabu(i,1))=Delta_Tau(Tabu(i,n),Tabu(i,1))+Q/L(i);
+        %´Ë´ÎÑ­»·ÔÚÕû¸öÂ·¾¶ÉÏµÄĞÅÏ¢ËØÔöÁ¿
     end
-    Tau=(1-Rho).*Tau+Delta_Tau;
-   
-    %%ç¬¬å…­æ­¥ï¼šç¦å¿Œè¡¨æ¸…é›¶
-    Tabu=zeros(m,n);
+    Tau=(1-Rho).*Tau+Delta_Tau; %¿¼ÂÇĞÅÏ¢ËØ»Ó·¢£¬¸üĞÂºóµÄĞÅÏ¢ËØ
+    %%µÚÁù²½£º½û¼É±íÇåÁã
+    Tabu=zeros(m,n);             %%Ö±µ½×î´óµü´ú´ÎÊı
 end
-
-%%ç¬¬ä¸ƒæ­¥ï¼šè¾“å‡ºç»“æœ
-Pos=find(L_best==min(L_best));
-Shortest_Route=R_best(Pos(1),:);
-Shortest_Length=L_best(Pos(1));
-subplot(1,2,1)
-DrawRoute(C,Shortest_Route)
-subplot(1,2,2)
+%%µÚÆß²½£ºÊä³ö½á¹û
+Pos=find(L_best==min(L_best)); %ÕÒµ½×î¼ÑÂ·¾¶£¨·Ç0ÎªÕæ£©
+Shortest_Route=R_best(Pos(1),:) %×î´óµü´ú´ÎÊıºó×î¼ÑÂ·¾¶
+Shortest_Length=L_best(Pos(1)) %×î´óµü´ú´ÎÊıºó×î¶Ì¾àÀë
+subplot(1,2,1)                  %»æÖÆµÚÒ»¸ö×ÓÍ¼ĞÎ
+DrawRoute(C,Shortest_Route)     %»­Â·ÏßÍ¼µÄ×Óº¯Êı
+subplot(1,2,2)                  %»æÖÆµÚ¶ş¸ö×ÓÍ¼ĞÎ
 plot(L_best)
-hold on
-plot(L_ave)
+hold on                         %±£³ÖÍ¼ĞÎ
+plot(L_ave,'r')
+title('Æ½¾ù¾àÀëºÍ×î¶Ì¾àÀë')     %±êÌâ
